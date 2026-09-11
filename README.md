@@ -90,10 +90,6 @@ Use `<input>` to let users type text:
     <button onclick="submit">Submit</button>
   </window>
 </app>
-
-<function name="submit">
-  <alert message="Thanks for entering your name!"/>
-</function>
 ```
 
 ### 5. Organizing with Layouts
@@ -112,15 +108,93 @@ Use `<column>` for vertical layout or `<row>` for horizontal:
 </app>
 ```
 
-### 6. Actions
+### 6. Background Color
+
+Set the window background with `<background>`:
+
+```slab
+<app>
+  <window title="My App">
+    <background color="blue"/>
+    <text>Blue window!</text>
+  </window>
+</app>
+```
+
+### 7. Images
+
+Show images with `<image>`. Images auto-size to fit:
+
+```slab
+<app>
+  <window title="My App">
+    <image file="photo.png"/>
+  </window>
+</app>
+```
+
+### 8. Text with IDs (Change Text Live)
+
+Give text an `id` and change it later with `<change>`:
+
+```slab
+<app>
+  <window title="Counter">
+    <text id="counter" big>Count: 0</text>
+    <button onclick="add">Add 1</button>
+  </window>
+</app>
+
+<function name="add">
+  <change textid="counter" to="Count: 1"/>
+</function>
+```
+
+### 9. Variables
+
+Store values with `<setvar>` and use them in checks:
+
+```slab
+<function name="start">
+  <setvar name="score" value="0"/>
+</function>
+```
+
+### 10. If Conditions
+
+Check things with `<if>`:
+
+```slab
+<function name="check">
+  <if condition="vars['score'] == 1">
+    <alert message="You win!"/>
+  </if>
+</function>
+```
+
+### 11. Check/Case (Simple Switch)
+
+Use `<check>` with `<case>` for easy value checking:
+
+```slab
+<function name="check">
+  <setvar name="score" value="1"/>
+  <check name="score">
+    <case value="1" goto="WinScene"/>
+    <case value="0" alert="Not eligible"/>
+  </check>
+</function>
+```
+
+### 12. Actions
 
 Actions are things that happen when you click buttons:
 
 ```slab
-<function name="doSomething">
+<function name="doStuff">
   <alert message="This pops up!"/>
   <print text="This goes to console"/>
-  <set name="x" to="hello"/>
+  <close/>
 </function>
 ```
 
@@ -128,9 +202,12 @@ Actions are things that happen when you click buttons:
 |--------|--------------|
 | `<alert message="..."/>` | Show a popup message |
 | `<print text="..."/>` | Print to console |
-| `<set name="x" to="..."/>` | Set a variable |
+| `<setvar name="x" value="..."/>` | Store a value |
+| `<change textid="x" to="..."/>` | Change text on screen |
+| `<background color="..."/>` | Change window color |
+| `<close/>` | Close the app |
 
-### 7. Scenes (Multiple Screens)
+### 13. Scenes (Multiple Screens)
 
 Create multiple `.slab` files and switch between them:
 
@@ -157,7 +234,7 @@ Create multiple `.slab` files and switch between them:
 
 Use `onclick="goto SceneName"` to switch scenes!
 
-### 8. Using Addons
+### 14. Using Addons
 
 Addons let you extend Slab with extra features. Put addons in the `addons/` folder.
 
@@ -174,20 +251,25 @@ Addons let you extend Slab with extra features. Put addons in the `addons/` fold
 
 ```slab
 <app>
-  <window title="My Todo App">
-    <text big>My Todo List</text>
-    <column>
-      <text>1. Learn Slab</text>
-      <text>2. Build an app</text>
-      <text>3. Share it</text>
-    </column>
-    <button onclick="addTodo">Add Todo</button>
-    <button onclick="goto Settings">Settings</button>
+  <window title="My App">
+    <background color="#222"/>
+    <text id="score" big>Score: 0</text>
+    <button onclick="addScore">Add Point</button>
+    <button onclick="checkScore">Check Score</button>
+    <button onclick="goto Scene2">Scene 2</button>
   </window>
 </app>
 
-<function name="addTodo">
-  <alert message="Todo added!"/>
+<function name="addScore">
+  <setvar name="score" value="1"/>
+  <change textid="score" to="Score: 1"/>
+</function>
+
+<function name="checkScore">
+  <check name="score">
+    <case value="1" goto="Scene2"/>
+    <case value="0" alert="Score is 0!"/>
+  </check>
 </function>
 ```
 
@@ -200,6 +282,7 @@ Addons let you extend Slab with extra features. Put addons in the `addons/` fold
 | `slab new <name>` | Create a new project |
 | `slab run <file.slab>` | Run a Slab file |
 | `slab build <file.slab>` | Build to Python |
+| `slab build-all <dir>` | Build entire project |
 | `slab ide` | Launch the IDE |
 
 ---
@@ -223,8 +306,10 @@ myapp/
 
 1. **No numbers needed** - Slab auto-sizes everything
 2. **Structure first** - Add `<app>`, `<window>`, then content
-3. **Actions second** - Define `<function>` blocks for what buttons do
-4. **Scenes** - Use `goto SceneName` to switch between screens
+3. **Close tags in order** - Last opened, first closed
+4. **Self-closing tags** - Use `/` at the end: `<alert message="Hi"/>`
+5. **Functions** - Define `<function>` blocks for what buttons do
+6. **Scenes** - Use `goto SceneName` to switch between screens
 
 ---
 
