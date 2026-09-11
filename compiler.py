@@ -416,6 +416,8 @@ def compile_action(node: Node) -> list:
         return [f'root.configure(bg="{color}")']
     elif node.tag == "if":
         return compile_if(node)
+    elif node.tag == "check":
+        return compile_check(node)
     elif node.tag in addons:
         attrs = dict(node.attributes)
         attrs_str = str(attrs)
@@ -438,4 +440,38 @@ def compile_if(node: Node) -> list:
             action_lines = compile_action(child)
             for line in action_lines:
                 lines.append(f"    {line}")
+    return lines
+
+
+def compile_check(node: Node) -> list:
+    """Compile a <check name="score"><case .../></check> block."""
+    var_name = node.attributes.get('name', '')
+    lines = []
+
+    for i, child in enumerate(node.children):
+        if child.tag != "case":
+            continue
+
+        value = child.attributes.get('value', '')
+        goto_scene = child.attributes.get('goto', '')
+        alert_msg = child.attributes.get('alert', '')
+        print_msg = child.attributes.get('print', '')
+
+        # Build condition
+        condition = f'vars.get("{var_name}") == {value}'
+
+        # First case uses if, rest use elif
+        if i == 0:
+            lines.append(f"if {condition}:")
+        else:
+            lines.append(f"elif {condition}:")
+
+        # Build action
+        if goto_scene:
+            lines.append(f'    goto("{goto_scene}")')
+        elif alert_msg:
+            lines.append(f'    messagebox.showinfo("Alert", "{alert_msg}")')
+        elif print_msg:
+            lines.append(f'    print("{print_msg}")')
+
     return lines
