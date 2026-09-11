@@ -85,7 +85,19 @@ def compile_project(project_dir: str) -> str:
             with open(filepath, 'r') as f:
                 slab_files[scene_name] = f.read()
 
-    # Compile each scene as a function
+    # Pass 1: Extract ALL <function> blocks from all scenes (top-level)
+    all_functions = []
+    for scene_name, code in slab_files.items():
+        tree = parse_slab(code)
+        for child in tree.children:
+            if child.tag == "function":
+                all_functions.append(compile_function(child))
+
+    for func in all_functions:
+        python_code.append("")
+        python_code.extend(func)
+
+    # Pass 2: Compile each scene (widgets only, no functions)
     for scene_name, code in slab_files.items():
         tree = parse_slab(code)
         scene_code = compile_scene(scene_name, tree)
