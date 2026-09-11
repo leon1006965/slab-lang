@@ -129,7 +129,7 @@ class SlabIDE:
 
         # --- Bottom: debug console ---
         self.debug_console = DebugConsole(self.main_pane)
-        self.main_pane.add(self.debug_console)
+        self.main_pane.add(self.debug_console.frame)
 
         # Status bar
         self.status_bar = tk.Frame(self.root, bg="#007acc", height=25)
