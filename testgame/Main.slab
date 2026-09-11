@@ -1,12 +1,13 @@
 <app>
-<window title="Button Test">
-<button onclick="greet">Button to click</button>
-</window>
+<window title="Console Test">
+<button onclick="send">Send Hello World</button>
 </app>
+</window>
 
-<function name="greet">
-<alert message="You clicked the button!"/>
+<function name="send">
+<print text="Hello World"/>
 </function>
+
 
 
 

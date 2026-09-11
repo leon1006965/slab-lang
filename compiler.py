@@ -85,13 +85,24 @@ def compile_project(project_dir: str) -> str:
             with open(filepath, 'r') as f:
                 slab_files[scene_name] = f.read()
 
-    # Pass 1: Extract ALL <function> blocks from all scenes (top-level)
+    # Pass 1: Extract ALL <function> blocks from all scenes
     all_functions = []
     for scene_name, code in slab_files.items():
         tree = parse_slab(code)
+        # Top-level <function> blocks
         for child in tree.children:
             if child.tag == "function":
                 all_functions.append(compile_function(child))
+        # <function> blocks inside <app>
+        for child in tree.children:
+            if child.tag == "app":
+                for sub in child.children:
+                    if sub.tag == "function":
+                        all_functions.append(compile_function(sub))
+                    elif sub.tag == "window":
+                        for elem in sub.children:
+                            if elem.tag == "function":
+                                all_functions.append(compile_function(elem))
 
     for func in all_functions:
         python_code.append("")
@@ -150,6 +161,8 @@ def compile_scene(name: str, tree: Node) -> list:
                     lines.append("    ")
 
                     for elem in window.children:
+                        if elem.tag == "function":
+                            continue  # already extracted
                         elem_lines = compile_element(elem)
                         for line in elem_lines:
                             lines.append(f"    {line}")
