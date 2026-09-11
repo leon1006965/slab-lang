@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import sys
 from parser import Node, get_text, find_children, parse_slab
 
 
@@ -12,44 +13,43 @@ def load_addons(project_dir: str):
     """Load addons from the project's addons folder."""
     global addons
     addons = {}
-    
+
     addons_dir = os.path.join(project_dir, 'addons')
     if not os.path.exists(addons_dir):
         return
-    
+
     for addon_name in os.listdir(addons_dir):
         addon_path = os.path.join(addons_dir, addon_name)
         if not os.path.isdir(addon_path):
             continue
-        
-        # Look for JSON config
+
         for filename in os.listdir(addon_path):
             if filename.endswith('.json'):
                 json_path = os.path.join(addon_path, filename)
                 try:
                     with open(json_path, 'r') as f:
                         config = json.load(f)
-                    
+
                     py_file = config.get('python', filename.replace('.json', '.py'))
                     py_path = os.path.join(addon_path, py_file)
-                    
+
                     if os.path.exists(py_path):
                         with open(py_path, 'r') as f:
                             py_code = f.read()
-                        
+
                         addons[config['tag']] = {
                             'config': config,
                             'code': py_code
                         }
+                        print(f"[Slab] Loaded addon: {config['tag']}")
                 except Exception as e:
-                    print(f"Error loading addon {addon_name}: {e}")
+                    print(f"[Slab] Error loading addon {addon_name}: {e}")
 
 
 def compile_project(project_dir: str) -> str:
     """Compile all .slab files into a single Python app."""
-    # Load addons
     load_addons(project_dir)
-    
+
     python_code = [
         "import tkinter as tk",
         "from tkinter import messagebox",
@@ -63,21 +63,19 @@ def compile_project(project_dir: str) -> str:
         "# Addon functions storage",
         "addon_funcs = {}",
         "",
-        ""
     ]
-    
+
     # Add addon code with unique function names
     if addons:
         python_code.append("# Addon code")
         for tag, addon in addons.items():
-            # Rename 'run' function to 'run_<tag>'
             code = addon['code'].replace('def run(', f'def run_{tag}(')
             python_code.append(f"# Addon: {tag}")
             python_code.append(code)
             python_code.append(f"addon_funcs['{tag}'] = run_{tag}")
             python_code.append("")
         python_code.append("")
-    
+
     # Load all .slab files
     slab_files = {}
     for filename in sorted(os.listdir(project_dir)):
@@ -86,7 +84,7 @@ def compile_project(project_dir: str) -> str:
             filepath = os.path.join(project_dir, filename)
             with open(filepath, 'r') as f:
                 slab_files[scene_name] = f.read()
-    
+
     # Compile each scene as a function
     for scene_name, code in slab_files.items():
         tree = parse_slab(code)
@@ -94,19 +92,19 @@ def compile_project(project_dir: str) -> str:
         python_code.extend(scene_code)
         python_code.append("")
         python_code.append("")
-    
+
     # Add goto function
     python_code.extend(compile_goto_function())
     python_code.append("")
     python_code.append("")
-    
+
     # Register scenes
     python_code.append("# Register scenes")
     for scene_name in slab_files.keys():
         python_code.append(f"scenes['{scene_name}'] = scene_{scene_name}")
     python_code.append("")
     python_code.append("")
-    
+
     # Add main entry
     python_code.append("# Start the app")
     python_code.append("root = tk.Tk()")
@@ -115,7 +113,7 @@ def compile_project(project_dir: str) -> str:
     python_code.append("")
     python_code.append("goto('Main')")
     python_code.append("root.mainloop()")
-    
+
     return "\n".join(python_code)
 
 
@@ -130,23 +128,20 @@ def compile_scene(name: str, tree: Node) -> list:
     lines.append("    for widget in root.winfo_children():")
     lines.append("        widget.destroy()")
     lines.append("    ")
-    
-    # Find the app/window
+
     for child in tree.children:
         if child.tag == "app":
             for window in child.children:
                 if window.tag == "window":
-                    # Set window title
                     title = window.attributes.get('title', name)
                     lines.append(f'    root.title("{title}")')
                     lines.append("    ")
-                    
-                    # Compile children
+
                     for elem in window.children:
                         elem_lines = compile_element(elem)
                         for line in elem_lines:
                             lines.append(f"    {line}")
-    
+
     return lines
 
 
@@ -172,7 +167,7 @@ def compile_text(node: Node) -> list:
     text = get_text(node)
     is_big = node.attributes.get('big', False)
     font_size = 16 if is_big else 12
-    
+
     lines = []
     lines.append(f'label = tk.Label(root, text="{text}", font=({font_size}))')
     lines.append("label.pack(padx=20, pady=5)")
@@ -183,7 +178,7 @@ def compile_button(node: Node) -> list:
     """Compile a <button> element."""
     text = get_text(node)
     onclick = node.attributes.get('onclick', '')
-    
+
     lines = []
     if onclick.startswith("goto "):
         scene_name = onclick[5:].strip()
@@ -192,7 +187,7 @@ def compile_button(node: Node) -> list:
         lines.append(f'btn = tk.Button(root, text="{text}", command={onclick})')
     else:
         lines.append(f'btn = tk.Button(root, text="{text}")')
-    
+
     lines.append("btn.pack(padx=20, pady=5)")
     return lines
 
@@ -210,23 +205,23 @@ def compile_box(node: Node) -> list:
     lines = []
     lines.append("frame = tk.Frame(root)")
     lines.append('frame.pack(fill="both", expand=True, padx=10, pady=10)')
-    
+
     for child in node.children:
         child_lines = compile_element(child)
         child_lines = [line.replace('root', 'frame') for line in child_lines]
         lines.extend(child_lines)
-    
+
     return lines
 
 
 def compile_layout(node: Node, direction: str) -> list:
     """Compile a <row> or <column>."""
     side = "left" if direction == "row" else "top"
-    
+
     lines = []
     lines.append("frame = tk.Frame(root)")
     lines.append('frame.pack(fill="both", expand=True)')
-    
+
     for child in node.children:
         child_lines = compile_element(child)
         child_lines = [line.replace('root', 'frame') for line in child_lines]
@@ -234,7 +229,7 @@ def compile_layout(node: Node, direction: str) -> list:
             if '.pack(' in line and 'fill' not in line:
                 child_lines[i] = line.replace('.pack(', f'.pack(side="{side}", ')
         lines.extend(child_lines)
-    
+
     return lines
 
 
@@ -250,65 +245,78 @@ def compile_goto_function() -> list:
     ]
 
 
+# ---------------------------------------------------------------------------
+# Single-file compiler (used by `slab run file.slab` when no project)
+# ---------------------------------------------------------------------------
+
 def compile_to_python(root: Node) -> str:
-    """Compile single .slab file (for backward compatibility)."""
+    """Compile a single .slab file into Python.
+
+    Functions are emitted FIRST so they can be referenced by widgets.
+    """
     python_code = [
         "import tkinter as tk",
         "from tkinter import messagebox",
         "",
-        ""
     ]
-    
+
+    # Pass 1 – collect all <function> blocks
     functions = []
-    widgets = []
-    
+    app_node = None
     for child in root.children:
-        if child.tag == "app":
-            for window in child.children:
-                if window.tag == "window":
-                    python_code.extend(compile_window(window))
-        elif child.tag == "function":
+        if child.tag == "function":
             functions.append(compile_function(child))
-    
+        elif child.tag == "app":
+            app_node = child
+
+    # Emit functions BEFORE any widgets
     for func in functions:
-        python_code.extend(func)
         python_code.append("")
-    
+        python_code.extend(func)
+
+    # Pass 2 – compile the <app> / <window> widgets
+    if app_node:
+        for window in app_node.children:
+            if window.tag == "window":
+                python_code.append("")
+                python_code.extend(_compile_window(window))
+
+    python_code.append("")
     python_code.append("root.mainloop()")
     return "\n".join(python_code)
 
 
-def compile_window(node: Node) -> list:
-    """Compile a window element."""
+def _compile_window(node: Node) -> list:
+    """Compile a <window> element."""
     lines = []
     title = node.attributes.get('title', 'Slab App')
+    lines.append("")
     lines.append("root = tk.Tk()")
     lines.append(f'root.title("{title}")')
     lines.append("root.geometry('400x300')")
-    lines.append("")
-    
+
     for child in node.children:
-        lines.extend(compile_element(child))
         lines.append("")
-    
+        lines.extend(compile_element(child))
+
     return lines
 
 
 def compile_function(node: Node) -> list:
-    """Compile a function element."""
+    """Compile a <function> element."""
     name = node.attributes.get('name', 'unknown')
     lines = []
     lines.append(f"def {name}():")
-    
+
     if not node.children:
         lines.append("    pass")
         return lines
-    
+
     for child in node.children:
         action_lines = compile_action(child)
         for line in action_lines:
             lines.append(f"    {line}")
-    
+
     return lines
 
 
@@ -325,11 +333,10 @@ def compile_action(node: Node) -> list:
         value = node.attributes.get('to', '')
         return [f'{name} = "{value}"']
     elif node.tag in addons:
-        # Handle addon tag
         attrs = dict(node.attributes)
         attrs_str = str(attrs)
         return [
             f'result = addon_funcs["{node.tag}"]({attrs_str})',
-            f'if result: messagebox.showinfo("Addon", result)'
+            f'if result: messagebox.showinfo("Addon", result)',
         ]
     return []

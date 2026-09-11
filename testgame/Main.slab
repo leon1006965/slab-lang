@@ -1,7 +1,9 @@
 <app>
-  <window title="testgame">
-    <text big>Welcome to testgame!</text>
-    <text>Edit Main.slab to get started</text>
-    <button onclick="goto Scene1">Go to Scene 1</button>
-  </window>
+<window title="Button Test">
+<button onclick="greet">Button to click</button>
+</window>
 </app>
+
+<function name="greet">
+<alert message="You clicked the button!"/>
+</function>
