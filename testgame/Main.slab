@@ -1,12 +1,13 @@
 <app>
 <window title="Console Test">
 <button onclick="send">Send Hello World</button>
-</app>
 </window>
+</app>
 
 <function name="send">
 <print text="Hello World"/>
 </function>
+
 
 
 
