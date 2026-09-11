@@ -1,0 +1,19 @@
+{
+    "name": "File Encrypter",
+    "tag": "encrypt",
+    "description": "Encrypt files with a password",
+    "python": "encrypt.py",
+    "syntax": "<encrypt file=\"path\" password=\"secret\">",
+    "attributes": {
+        "file": {
+            "type": "string",
+            "required": true,
+            "description": "Path to the file to encrypt"
+        },
+        "password": {
+            "type": "string",
+            "required": true,
+            "description": "Password for encryption"
+        }
+    }
+}

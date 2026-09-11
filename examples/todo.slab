@@ -1,0 +1,20 @@
+<app>
+  <window title="Todo List">
+    <text big>My Todo List</text>
+    <column>
+      <text>1. Learn Slab</text>
+      <text>2. Build an app</text>
+      <text>3. Share with friends</text>
+    </column>
+    <button onclick="add">Add Todo</button>
+    <button onclick="clear">Clear All</button>
+  </window>
+</app>
+
+<function name="add">
+  <alert message="Todo added!"/>
+</function>
+
+<function name="clear">
+  <alert message="All cleared!"/>
+</function>

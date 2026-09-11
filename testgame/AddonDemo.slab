@@ -1,0 +1,16 @@
+<app>
+  <window title="Addon Demo">
+    <text big>Slab Addons Demo</text>
+    <button onclick="log_msg">Log Message</button>
+    <button onclick="encrypt_file">Encrypt File</button>
+  </window>
+</app>
+
+<function name="log_msg">
+  <log file="app.log" message="User clicked log button"/>
+  <alert message="Logged!"/>
+</function>
+
+<function name="encrypt_file">
+  <encrypt file="secret.txt" password="mypassword"/>
+</function>

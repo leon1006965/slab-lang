@@ -1,0 +1,49 @@
+#!/bin/bash
+# Slab CLI - Simple programming language
+# Usage: slab run file.slab | slab build file.slab | slab new name | slab ide
+
+SLAB_DIR="$(dirname "$0")"
+
+case "$1" in
+    run)
+        if [ -z "$2" ]; then
+            echo "Usage: slab run <file.slab>"
+            exit 1
+        fi
+        python3 "$SLAB_DIR/slab.py" run "$2"
+        ;;
+    build)
+        if [ -z "$2" ]; then
+            echo "Usage: slab build <file.slab>"
+            exit 1
+        fi
+        python3 "$SLAB_DIR/slab.py" build "$2"
+        ;;
+    build-all)
+        if [ -z "$2" ]; then
+            echo "Usage: slab build-all <directory>"
+            exit 1
+        fi
+        python3 "$SLAB_DIR/slab.py" build-all "$2"
+        ;;
+    new)
+        if [ -z "$2" ]; then
+            echo "Usage: slab new <project-name>"
+            exit 1
+        fi
+        python3 "$SLAB_DIR/slab.py" new "$2"
+        ;;
+    ide)
+        python3 "$SLAB_DIR/slab.py" ide
+        ;;
+    *)
+        echo "Slab - A simple programming language"
+        echo ""
+        echo "Commands:"
+        echo "  slab run <file.slab>       Run a Slab file"
+        echo "  slab build <file.slab>     Build to Python"
+        echo "  slab build-all <dir>       Build all .slab files"
+        echo "  slab new <name>            Create new project"
+        echo "  slab ide                   Launch the IDE"
+        ;;
+esac

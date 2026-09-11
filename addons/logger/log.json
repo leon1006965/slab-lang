@@ -1,0 +1,19 @@
+{
+    "name": "Logger",
+    "tag": "log",
+    "description": "Log messages to a file",
+    "python": "log.py",
+    "syntax": "<log file=\"logfile.txt\" message=\"Hello\">",
+    "attributes": {
+        "file": {
+            "type": "string",
+            "required": true,
+            "description": "Log file path"
+        },
+        "message": {
+            "type": "string",
+            "required": true,
+            "description": "Message to log"
+        }
+    }
+}

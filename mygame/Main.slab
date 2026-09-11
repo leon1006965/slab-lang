@@ -1,0 +1,9 @@
+<app>
+  <window title="mygame">
+    <text big>Welcome to mygame!</text>
+    <text>Edit Main.slab to get started</text>
+    <button onclick="goto Scene1">Go to Scene 1</button>
+  </window>
+</app>
+
+

@@ -1,0 +1,11 @@
+<app>
+  <window title="myapp">
+    <text big>Hello from Slab!</text>
+    <text>Welcome to your new app</text>
+    <button onclick="greet">Click Me</button>
+  </window>
+</app>
+
+<function name="greet">
+  <alert message="Hello, {name}!"/>
+</function>

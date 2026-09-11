@@ -1,0 +1,16 @@
+<app>
+  <window title="Hello Slab">
+    <text big>Hello World!</text>
+    <text>Welcome to Slab - the simple language</text>
+    <button onclick="greet">Click Me</button>
+    <button onclick="about">About</button>
+  </window>
+</app>
+
+<function name="greet">
+  <alert message="Hello from Slab!"/>
+</function>
+
+<function name="about">
+  <alert message="Slab - Simple like HTML, but for apps!"/>
+</function>
