@@ -179,7 +179,10 @@ class SlabIDE:
 
     # ----------------------------------------------------------- logging
     def log(self, msg, level="info"):
-        self.debug_console.log(msg, level)
+        try:
+            self.debug_console.log(msg, level)
+        except Exception:
+            pass  # Widget already destroyed (app closed)
 
     # --------------------------------------------------------- file ops
     def new_project(self):
@@ -317,21 +320,44 @@ class SlabIDE:
         self.log("Running project...")
 
         try:
-            # Load addons
+            # Load addons and compile
             load_addons(self.project_dir)
-
-            # Compile all scenes into one Python string
             python_code = compile_project(self.project_dir)
 
-            # Show generated code in debug (last 5 lines)
-            lines = python_code.strip().split("\n")
-            self.log(f"Compiled {len(lines)} lines of Python")
+            # Write compiled code to temp file
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py',
+                                             delete=False, dir='/tmp') as f:
+                f.write(python_code)
+                tmp_file = f.name
 
-            # Execute in a fresh namespace
-            namespace = {}
-            exec(compile(python_code, "<slab>", "exec"), namespace)
+            self.log(f"Compiled to {tmp_file}")
 
-            self.log("App closed normally", "success")
+            # Run as subprocess so it doesn't kill the IDE
+            import subprocess
+            proc = subprocess.Popen(
+                [sys.executable, tmp_file],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            # Read output in background thread
+            def read_output():
+                try:
+                    for line in proc.stdout:
+                        self.log(line.strip())
+                    for line in proc.stderr:
+                        self.log(line.strip(), "error")
+                    proc.wait()
+                    self.log(f"Process exited (code {proc.returncode})",
+                             "success" if proc.returncode == 0 else "error")
+                except Exception:
+                    pass
+
+            import threading
+            t = threading.Thread(target=read_output, daemon=True)
+            t.start()
 
         except Exception as e:
             tb = traceback.format_exc()
