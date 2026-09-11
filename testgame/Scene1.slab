@@ -1,9 +1,8 @@
 <app>
-  <window title="Scene 1">
-    <text big>Scene 1</text>
-    <text>This is the first scene</text>
-    <button onclick="goto Main">Back to Main</button>
-  </window>
+<window>
+<text>you have entered a scene</text>
+<button onclick="goto Main">Go back to main</button>
+</window>
 </app>
 
 

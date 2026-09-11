@@ -60,6 +60,12 @@ def compile_project(project_dir: str) -> str:
         "scenes = {}",
         "current_window = None",
         "",
+        "# Text elements storage (for <change> action)",
+        "texts = {}",
+        "",
+        "# Variables storage (for <setvar> action)",
+        "vars = {}",
+        "",
         "# Addon functions storage",
         "addon_funcs = {}",
         "",
@@ -184,6 +190,10 @@ def compile_element(node: Node) -> list:
         return compile_layout(node, "row")
     elif node.tag == "column":
         return compile_layout(node, "column")
+    elif node.tag == "background":
+        return compile_background(node)
+    elif node.tag == "image":
+        return compile_image(node)
     return []
 
 
@@ -192,10 +202,37 @@ def compile_text(node: Node) -> list:
     text = get_text(node)
     is_big = node.attributes.get('big', False)
     font_size = 16 if is_big else 12
+    elem_id = node.attributes.get('id', None)
 
     lines = []
-    lines.append(f'label = tk.Label(root, text="{text}", font=({font_size}))')
-    lines.append("label.pack(padx=20, pady=5)")
+    if elem_id:
+        # Store reference in global dict for later changes
+        lines.append(f'texts["{elem_id}"] = tk.Label(root, text="{text}", font=({font_size}))')
+        lines.append(f'texts["{elem_id}"].pack(padx=20, pady=5)')
+    else:
+        lines.append(f'tk.Label(root, text="{text}", font=({font_size})).pack(padx=20, pady=5)')
+    return lines
+
+
+def compile_background(node: Node) -> list:
+    """Compile a <background color="..."/> element."""
+    color = node.attributes.get('color', 'white')
+    return [f'root.configure(bg="{color}")']
+
+
+def compile_image(node: Node) -> list:
+    """Compile an <image file="..."/> element with auto-sizing."""
+    filepath = node.attributes.get('file', '')
+    lines = []
+    lines.append(f'if os.path.exists("{filepath}"):')
+    lines.append(f'    _img = tk.PhotoImage(file="{filepath}")')
+    # Auto-size: if image is bigger than 400px, scale it down
+    lines.append(f'    while _img.width() > 400 or _img.height() > 400:')
+    lines.append(f'        _img = _img.subsample(2, 2)')
+    lines.append(f'    tk.Label(root, image=_img).pack(padx=10, pady=10)')
+    lines.append(f'    root._img = _img  # keep reference')
+    lines.append(f'else:')
+    lines.append(f'    tk.Label(root, text="Image not found: {filepath}").pack()')
     return lines
 
 
@@ -282,6 +319,13 @@ def compile_to_python(root: Node) -> str:
     python_code = [
         "import tkinter as tk",
         "from tkinter import messagebox",
+        "import os",
+        "",
+        "# Text elements storage",
+        "texts = {}",
+        "",
+        "# Variables storage",
+        "vars = {}",
         "",
     ]
 
@@ -357,6 +401,21 @@ def compile_action(node: Node) -> list:
         name = node.attributes.get('name', 'var')
         value = node.attributes.get('to', '')
         return [f'{name} = "{value}"']
+    elif node.tag == "setvar":
+        name = node.attributes.get('name', 'var')
+        value = node.attributes.get('value', '0')
+        return [f'vars["{name}"] = {value}']
+    elif node.tag == "change":
+        text_id = node.attributes.get('textid', '')
+        new_text = node.attributes.get('to', '')
+        return [f'texts["{text_id}"].config(text="{new_text}")']
+    elif node.tag == "close":
+        return ["root.destroy()"]
+    elif node.tag == "background":
+        color = node.attributes.get('color', 'white')
+        return [f'root.configure(bg="{color}")']
+    elif node.tag == "if":
+        return compile_if(node)
     elif node.tag in addons:
         attrs = dict(node.attributes)
         attrs_str = str(attrs)
@@ -365,3 +424,18 @@ def compile_action(node: Node) -> list:
             f'if result: messagebox.showinfo("Addon", result)',
         ]
     return []
+
+
+def compile_if(node: Node) -> list:
+    """Compile an <if condition="..."> block."""
+    condition = node.attributes.get('condition', 'True')
+    lines = []
+    lines.append(f"if {condition}:")
+    if not node.children:
+        lines.append("    pass")
+    else:
+        for child in node.children:
+            action_lines = compile_action(child)
+            for line in action_lines:
+                lines.append(f"    {line}")
+    return lines

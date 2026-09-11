@@ -1,12 +1,23 @@
 <app>
-<window title="Console Test">
-<button onclick="send">Send Hello World</button>
+<window title="Hello World">
+<text>Hello World</text>
+<button onclick="openwindow">Open a Alert Window</button>
+<button onclick="goto Scene1">Enter a Scene</button>
+<button onclick="consolemessage">Show Hello World in Console</button>
 </window>
 </app>
 
-<function name="send">
+<function name="openwindow">
+<alert message="This is a Alert"/>
+</function>
+
+<function name="consolemessage">
 <print text="Hello World"/>
 </function>
+
+
+
+
 
 
 
