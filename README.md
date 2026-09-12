@@ -123,12 +123,18 @@ Set the window background with `<background>`:
 
 ### 7. Images
 
-Show images with `<image>`. Images auto-size to fit:
+Show images with `<image>`. Images auto-size to fit. Supports PNG, GIF (built-in) and JPG, BMP, etc (requires Pillow):
+
+```bash
+pip install Pillow  # only needed for JPG, BMP, etc
+```
 
 ```slab
 <app>
   <window title="My App">
     <image file="photo.png"/>
+    <!-- or use path= -->
+    <image path="photo.jpg"/>
   </window>
 </app>
 ```
