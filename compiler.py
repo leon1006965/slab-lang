@@ -222,7 +222,7 @@ def compile_background(node: Node) -> list:
 
 def compile_image(node: Node) -> list:
     """Compile an <image file="..."/> element with auto-sizing."""
-    filepath = node.attributes.get('file', '')
+    filepath = node.attributes.get('file', '') or node.attributes.get('path', '')
     lines = []
     lines.append(f'if os.path.exists("{filepath}"):')
     lines.append(f'    _img = tk.PhotoImage(file="{filepath}")')

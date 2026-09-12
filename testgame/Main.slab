@@ -1,20 +1,26 @@
 <app>
-<window title="Hello World">
-<text>Hello World</text>
-<button onclick="openwindow">Open a Alert Window</button>
-<button onclick="goto Scene1">Enter a Scene</button>
-<button onclick="consolemessage">Show Hello World in Console</button>
+<window title="Values">
+<button onclick="setzero">Set to Not Eligible</button>
+<button onclick="setone">Set to Eligible</button>
+<button onclick="check">Check if Eligible or Not</button>
+<image path="/home/leone/Pobrane/25231.jpg"/>
 </window>
 </app>
 
-<function name="openwindow">
-<alert message="This is a Alert"/>
+<function name="setzero">
+<setvar name="eligibility" value="0"/>
 </function>
 
-<function name="consolemessage">
-<print text="Hello World"/>
+<function name="setone">
+<setvar name="eligibility" value="1"/>
 </function>
 
+<function name="check">
+<check name="eligibility">
+<case value="1" goto="Scene1"/>
+<case value="0" alert="Not eligible"/>
+</check>
+</function>
 
 
 

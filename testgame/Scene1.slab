@@ -1,9 +1,10 @@
 <app>
 <window>
-<text>you have entered a scene</text>
+<text>Entered Eligible Scene</text>
 <button onclick="goto Main">Go back to main</button>
 </window>
 </app>
+
 
 
 
