@@ -204,6 +204,8 @@ Actions are things that happen when you click buttons:
 </function>
 ```
 
+#### Basic Actions
+
 | Action | What it does |
 |--------|--------------|
 | `<alert message="..."/>` | Show a popup message |
@@ -212,6 +214,108 @@ Actions are things that happen when you click buttons:
 | `<change textid="x" to="..."/>` | Change text on screen |
 | `<background color="..."/>` | Change window color |
 | `<close/>` | Close the app |
+
+#### Show Variables in Messages
+
+Use `{varname}` to show a variable's value:
+
+```slab
+<function name="check">
+  <setvar name="score" value="5"/>
+  <alert message="Score: {score}"/>
+  <!-- Shows: Score: 5 -->
+</function>
+```
+
+Works in `<alert>`, `<print>`, and `<change>`.
+
+#### Math
+
+Do math on variables:
+
+```slab
+<function name="play">
+  <setvar name="score" value="0"/>
+  <math name="score" add="1"/>      <!-- score = 1 -->
+  <math name="score" add="1"/>      <!-- score = 2 -->
+  <math name="score" sub="1"/>      <!-- score = 1 -->
+  <math name="score" multiply="2"/> <!-- score = 2 -->
+</function>
+```
+
+#### Random Numbers
+
+Generate random numbers:
+
+```slab
+<function name="roll">
+  <random name="dice" min="1" max="6"/>
+  <alert message="Rolled: {dice}"/>
+</function>
+```
+
+#### Combine Text
+
+Join text together:
+
+```slab
+<function name="greet">
+  <ask name="name" prompt="Your name?"/>
+  <combine name="hello" a="Hello " b="{name}"/>
+  <alert message="{hello}"/>
+</function>
+```
+
+#### Get User Input
+
+Show a popup input box:
+
+```slab
+<function name="start">
+  <ask name="username" prompt="What is your name?"/>
+  <alert message="Hello {username}!"/>
+</function>
+```
+
+#### File Operations
+
+Read and write files:
+
+```slab
+<function name="save">
+  <writefile path="data.txt" content="hello world"/>
+</function>
+
+<function name="load">
+  <readfile name="content" path="data.txt"/>
+  <alert message="File says: {content}"/>
+</function>
+```
+
+#### Open Website
+
+Open a URL in the browser:
+
+```slab
+<function name="openSite">
+  <open url="https://google.com"/>
+</function>
+```
+
+#### Clipboard
+
+Copy and paste:
+
+```slab
+<function name="copy">
+  <clipboard set="hello world"/>
+</function>
+
+<function name="paste">
+  <clipboard name="clip"/>
+  <alert message="Pasted: {clip}"/>
+</function>
+```
 
 ### 13. Scenes (Multiple Screens)
 
