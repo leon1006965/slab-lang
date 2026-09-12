@@ -221,23 +221,28 @@ def compile_background(node: Node) -> list:
 
 
 def compile_image(node: Node) -> list:
-    """Compile an <image file="..."/> element with auto-sizing."""
+    """Compile an <image file="..."/> element that scales with window."""
     filepath = node.attributes.get('file', '') or node.attributes.get('path', '')
     lines = []
     lines.append(f'if os.path.exists("{filepath}"):')
     lines.append(f'    try:')
     lines.append(f'        from PIL import Image, ImageTk')
-    lines.append(f'        _pil_img = Image.open("{filepath}")')
-    lines.append(f'        _w, _h = _pil_img.size')
-    lines.append(f'        if _w > 400 or _h > 400:')
-    lines.append(f'            ratio = min(400 / _w, 400 / _h)')
-    lines.append(f'            _pil_img = _pil_img.resize((int(_w * ratio), int(_h * ratio)))')
-    lines.append(f'        _photo = ImageTk.PhotoImage(_pil_img)')
+    lines.append(f'        _orig = Image.open("{filepath}")')
+    lines.append(f'        _img_label = tk.Label(root)')
+    lines.append(f'        _img_label.pack(padx=10, pady=10)')
+    lines.append(f'        def _fit_image(event):')
+    lines.append(f'            _w, _h = _orig.size')
+    lines.append(f'            ratio = min(event.width / _w, event.height / _h, 1)')
+    lines.append(f'            _nw, _nh = int(_w * ratio), int(_h * ratio)')
+    lines.append(f'            _resized = _orig.resize((_nw, _nh))')
+    lines.append(f'            _ph = ImageTk.PhotoImage(_resized)')
+    lines.append(f'            _img_label.config(image=_ph)')
+    lines.append(f'            _img_label.image = _ph')
+    lines.append(f'        root.bind("<Configure>", _fit_image)')
     lines.append(f'    except ImportError:')
-    lines.append(f'        _photo = tk.PhotoImage(file="{filepath}")')
-    lines.append(f'    _img_label = tk.Label(root, image=_photo)')
-    lines.append(f'    _img_label.image = _photo')
-    lines.append(f'    _img_label.pack(padx=10, pady=10)')
+    lines.append(f'        _img = tk.PhotoImage(file="{filepath}")')
+    lines.append(f'        tk.Label(root, image=_img).pack(padx=10, pady=10)')
+    lines.append(f'        root._img = _img')
     lines.append(f'else:')
     lines.append(f'    tk.Label(root, text="Image not found: {filepath}").pack()')
     return lines
