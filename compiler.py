@@ -431,9 +431,16 @@ def compile_action(node: Node) -> list:
     """Compile an action element."""
     if node.tag == "alert":
         message = node.attributes.get('message', 'Alert!')
+        # Support {varname} for variable values
+        if '{' in message:
+            msg = message.replace('{', "{vars.get('").replace('}', "', '?')}")
+            return [f'messagebox.showinfo("Alert", f"{msg}")']
         return [f'messagebox.showinfo("Alert", "{message}")']
     elif node.tag == "print":
         text = node.attributes.get('text', '')
+        if '{' in text:
+            msg = text.replace('{', "{vars.get('").replace('}', "', '?')}")
+            return [f'print(f"{msg}")']
         return [f'print("{text}")']
     elif node.tag == "set":
         name = node.attributes.get('name', 'var')
@@ -446,6 +453,9 @@ def compile_action(node: Node) -> list:
     elif node.tag == "change":
         text_id = node.attributes.get('textid', '')
         new_text = node.attributes.get('to', '')
+        if '{' in new_text:
+            msg = new_text.replace('{', "{vars.get('").replace('}', "', '?')}")
+            return [f'texts["{text_id}"].config(text=f"{msg}")']
         return [f'texts["{text_id}"].config(text="{new_text}")']
     elif node.tag == "close":
         return ["root.destroy()"]
