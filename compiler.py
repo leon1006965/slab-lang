@@ -401,6 +401,32 @@ def compile_function(node: Node) -> list:
     return lines
 
 
+def compile_math(node: Node) -> list:
+    """Compile a <math name="x" add/sub/multiply/divide="value"/> action."""
+    name = node.attributes.get('name', '')
+    add_val = node.attributes.get('add', None)
+    sub_val = node.attributes.get('sub', None)
+    mul_val = node.attributes.get('multiply', None)
+    div_val = node.attributes.get('divide', None)
+
+    if add_val is not None:
+        return [f'vars["{name}"] = vars.get("{name}", 0) + {add_val}']
+    elif sub_val is not None:
+        return [f'vars["{name}"] = vars.get("{name}", 0) - {sub_val}']
+    elif mul_val is not None:
+        return [f'vars["{name}"] = vars.get("{name}", 0) * {mul_val}']
+    elif div_val is not None:
+        return [f'vars["{name}"] = vars.get("{name}", 0) / {div_val}']
+    return []
+
+    for child in node.children:
+        action_lines = compile_action(child)
+        for line in action_lines:
+            lines.append(f"    {line}")
+
+    return lines
+
+
 def compile_action(node: Node) -> list:
     """Compile an action element."""
     if node.tag == "alert":
@@ -430,6 +456,54 @@ def compile_action(node: Node) -> list:
         return compile_if(node)
     elif node.tag == "check":
         return compile_check(node)
+    # --- Math ---
+    elif node.tag == "math":
+        return compile_math(node)
+    # --- Random ---
+    elif node.tag == "random":
+        name = node.attributes.get('name', 'rand')
+        mn = node.attributes.get('min', '0')
+        mx = node.attributes.get('max', '100')
+        return [f'vars["{name}"] = __import__("random").randint({mn}, {mx})']
+    # --- Combine text ---
+    elif node.tag == "combine":
+        name = node.attributes.get('name', 'result')
+        a = node.attributes.get('a', '')
+        b = node.attributes.get('b', '')
+        sep = node.attributes.get('sep', '')
+        return [f'vars["{name}"] = "{a}" + "{sep}" + "{b}"']
+    # --- Ask (input popup) ---
+    elif node.tag == "ask":
+        name = node.attributes.get('name', 'answer')
+        prompt = node.attributes.get('prompt', 'Enter value:')
+        return [
+            f'import tkinter.simpledialog',
+            f'vars["{name}"] = tkinter.simpledialog.askstring("Input", "{prompt}") or ""'
+        ]
+    # --- File read ---
+    elif node.tag == "readfile":
+        name = node.attributes.get('name', 'content')
+        path = node.attributes.get('path', '')
+        return [
+            f'vars["{name}"] = open("{path}").read() if __import__("os").path.exists("{path}") else ""'
+        ]
+    # --- File write ---
+    elif node.tag == "writefile":
+        path = node.attributes.get('path', '')
+        content = node.attributes.get('content', '')
+        return [f'open("{path}", "w").write("{content}")']
+    # --- Open URL ---
+    elif node.tag == "open":
+        url = node.attributes.get('url', '')
+        return [f'__import__("webbrowser").open("{url}")']
+    # --- Clipboard ---
+    elif node.tag == "clipboard":
+        set_val = node.attributes.get('set', None)
+        if set_val is not None:
+            return [f'root.clipboard_clear(); root.clipboard_append("{set_val}")']
+        else:
+            name = node.attributes.get('name', 'clipboard')
+            return [f'vars["{name}"] = root.clipboard_get()']
     elif node.tag in addons:
         attrs = dict(node.attributes)
         attrs_str = str(attrs)
